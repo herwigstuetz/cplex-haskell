@@ -1,5 +1,5 @@
 Name:          cplex-bindings
-Version:       0.1
+Version:       0.1.1
 license:       BSD3
 license-file:  LICENSE
 Copyright:     (c) Greg Horn 2012-2013

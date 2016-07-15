@@ -49,10 +49,7 @@ module CPLEX ( CpxEnv
              , withLp
              ) where
 
--- import           Control.Monad.Error
-import           Control.Monad.IO.Class
--- import           Control.Monad.Trans
--- import           Control.Monad.Trans.Maybe
+import           Control.Monad.IO.Class (liftIO)
 import qualified Data.Map                     as M
 import qualified Data.Vector                  as V
 import           Data.Vector.Storable         (Vector)
@@ -225,9 +222,6 @@ getSolution env@(CpxEnv env') lp@(CpxLp lp') = do
     0 -> do
       statString <- getStatString env (CpxRet lpstat)
 
---      filename <- newCAString "lp.lp"
---      status <- c_CPXwriteprob env' lp' filename nullPtr
-
       return $ Right $ CpxSolution { solObj = realToFrac objval
                                    , solStat = statString
                                    , solX = VS.map realToFrac x''
@@ -242,18 +236,13 @@ getMIPSolution env@(CpxEnv env') lp@(CpxLp lp') = do
   status <- c_CPXchgprobtype env' lp' $ typeToInt CPX_PROB_MILP
   case status of
     0 -> do
---      lpstat' <- malloc
       objval' <- malloc
 
       numrows <- getNumRows env lp
       numcols <- getNumCols env lp
       x <- VSM.new numcols
---      p <- VSM.new numrows
       slack <- VSM.new numrows
---      dj <- VSM.new numcols
 
---      status <- c_CPXgetstat env' lp'
---      statString <- getStatString env (CpxRet lpstat)
       let statString = ""
 
       status <- c_CPXgetobjval env' lp' objval'
@@ -270,9 +259,6 @@ getMIPSolution env@(CpxEnv env') lp@(CpxLp lp') = do
               case status of
                 0 -> do
                   slack'' <- VS.freeze slack
-
---                  filename <- newCAString "mip.lp"
---                  status <- c_CPXwriteprob env' lp' filename nullPtr
 
                   return $ Right $ CpxSolution { solObj = realToFrac objval
                                                , solStat = statString
